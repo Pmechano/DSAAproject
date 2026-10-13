@@ -1,0 +1,9 @@
+{
+  "certificate_values": 2576,
+  "count_lp_cases": 702,
+  "binary_lp_cases": 41,
+  "threshold_cases": 720,
+  "rejected_infeasible": 36,
+  "max_absolute_lp_gap": 2.55351295663786e-14,
+  "seed": 20261013
+}
