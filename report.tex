@@ -28,7 +28,7 @@ Consider an odd number $K=2m+1$ of fixed binary classifiers evaluated on a rando
 \end{equation}
 The joint law of $(Z_1,\ldots,Z_K)$ matters: its marginals alone do not specify the law of $S$. We study the smallest possible $A$ under specified information, with no assumption that classifiers make independent errors. Any law on $\{0,1\}^K$ can arise in the stated classification model: take $X$ to be the vector of correctness indicators, set $Y=1$, and define $f_i(X)=X_i$. Thus our extremal constructions are legitimate fixed classifiers on a random binary classification example, rather than merely abstract Bernoulli couplings.
 
-This problem connects to the long-standing study of classifier diversity: pairwise measures can be informative but need not specify the ensemble outcome \citep{kuncheva2003}. Higher-order dependence among dichotomous variables is also central to Bahadur's representation \citep{bahadur1961}. We give direct finite-sample proofs, including attainment, so none of our conclusions depends on a diversity heuristic or an asymptotic approximation.
+This problem has established antecedents. Classifier-diversity measures and their relation to ensemble accuracy were studied by \citet{kuncheva2003}. Majority-vote risk bounds using first- and second-order information appear in the PAC-Bayesian work of \citet{germain2015} and \citet{masegosa2020}. The extremization over distributions with specified moments belongs to the broader literature on optimal probability inequalities \citep{bertsimas2005}; the importance of higher-order interactions among binary variables was already explicit in \citet{bahadur1961}. Our goal is a self-contained solution of this assignment's precise population-level constraints, with finite-sample proofs and attainable bounds. We do not claim that the general moment-programming method or the observation that pairwise information can be insufficient is new.
 
 \section{Independence versus arbitrary dependence}
 \subsection{Independent classifiers}
@@ -268,6 +268,16 @@ This result is a worst-case statement, not a recommendation to discard ensembles
 \section{Discussion and limitations}
 The information hierarchy is now explicit. Independence specifies the complete product joint law, hence an exact binomial (or Poisson-binomial) tail. Marginal accuracies alone specify only a Fr\'echet class, whose exact lower envelope is \eqref{eq:heterogeneous}. Pairwise correlations shrink that class but still leave higher-order interactions undetermined, as the three-voter example proves. The full joint law determines $A$ immediately. Increasing the ensemble size is beneficial under $p>1/2$ independence but can reduce the guaranteed accuracy under unrestricted dependence. With only marginals, the robust weighted-vote optimum is a single best classifier.
 
+The connection to second-order majority-vote bounds is concrete. Define the normalized vote margin $M=2S/K-1$; for odd $K$, $A=\Prb(M>0)$. Its first two moments are fixed by the one- and two-voter success probabilities:
+\begin{equation}\label{eq:marginmoments}
+ \Ex M=\frac{2}{K}\sum_i p_i-1,\qquad
+ \Ex M^2=1-\frac{4}{K}\sum_i p_i
+ +\frac{4}{K^2}\left(\sum_i p_i+2\sum_{i<j}r_{ij}\right).
+\end{equation}
+When $\Ex M>0$, Cauchy--Schwarz gives
+$\Ex M\le\Ex[M\ind\{M>0\}]\le\sqrt{\Ex[M^2]A}$, and hence
+$A\ge(\Ex M)^2/\Ex M^2$. This is the basic moment logic behind C-bound-style analyses of majority votes \citep{germain2015}; second-order PAC-Bayesian work also studies weighted votes \citep{masegosa2020}. Such bounds are useful when the full joint law is unavailable, but generally need not be sharp. In our $K=3$, $p=0.6$, $r=0.36$ example, the moment inequality gives only $A\ge 1/9$, whereas the exact pairwise-constrained minimum is $0.52$. Higher-order feasibility and the discrete threshold matter substantially.
+
 These are population statements. Estimating $p_i$ and $r_{ij}$ from a finite validation set introduces sampling error, and using estimates as exact constraints in \eqref{eq:LP} may even produce an infeasible program. A practical uncertainty-aware version would replace equalities by confidence regions. We also assume fixed binary classifiers and a common test distribution; distribution shift or training-data dependence requires additional modeling. No numerical experiment is needed for our exact finite-sample claims, though the displayed three-voter distributions provide directly checkable extremal examples.
 
 \clearpage
@@ -275,11 +285,20 @@ These are population statements. Estimating $p_i$ and $r_{ij}$ from a finite val
 \bibitem[Bahadur(1961)]{bahadur1961}
 R.~R. Bahadur. A representation of the joint distribution of responses to $n$ dichotomous items. In H.~Solomon, editor, \emph{Studies in Item Analysis and Prediction}. Stanford University Press, 1961.
 
+\bibitem[Bertsimas and Popescu(2005)]{bertsimas2005}
+D. Bertsimas and I. Popescu. Optimal inequalities in probability theory: A convex optimization approach. \emph{SIAM Journal on Optimization}, 15(3):780--804, 2005.
+
+\bibitem[Germain et~al.(2015)]{germain2015}
+P. Germain, A. Lacasse, F. Laviolette, M. Marchand, and J.-F. Roy. Risk bounds for the majority vote: From a PAC-Bayesian analysis to a learning algorithm. \emph{Journal of Machine Learning Research}, 16:787--860, 2015.
+
 \bibitem[Hoeffding(1963)]{hoeffding1963}
 W. Hoeffding. Probability inequalities for sums of bounded random variables. \emph{Journal of the American Statistical Association}, 58(301):13--30, 1963.
 
 \bibitem[Kuncheva and Whitaker(2003)]{kuncheva2003}
 L.~I. Kuncheva and C.~J. Whitaker. Measures of diversity in classifier ensembles and their relationship with the ensemble accuracy. \emph{Machine Learning}, 51:181--207, 2003.
+
+\bibitem[Masegosa et~al.(2020)]{masegosa2020}
+A. Masegosa, S. Lorenzen, C. Igel, and Y. Seldin. Second order PAC-Bayesian bounds for the weighted majority vote. In \emph{Advances in Neural Information Processing Systems}, 2020.
 \end{thebibliography}
 
 \appendix
