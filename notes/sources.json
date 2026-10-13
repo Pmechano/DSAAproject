@@ -1,0 +1,64 @@
+[
+  {
+    "id": "germain2015",
+    "title": "Germain et al. (2015)",
+    "url": "https://jmlr.org/papers/volume16/germain15a/germain15a.pdf",
+    "status": "full_text_retrieved_relevant_sections_read",
+    "sections": "Sections 4.1, 4.3, 4.4.1; Theorem 11 and Proposition 13",
+    "sha256": "658d2afdb791cd671c128bad8217a865b753bf1ebfb8bca18ba1e4d6301b6220",
+    "bytes": 1780332
+  },
+  {
+    "id": "masegosa2020",
+    "title": "Masegosa et al. (2020)",
+    "url": "https://arxiv.org/pdf/2007.13532",
+    "status": "full_text_retrieved_relevant_sections_read",
+    "sections": "Sections 2–3; Theorems 3, 5, 6; introduction to Section 4",
+    "sha256": "83faea6223efd392c90d75c4ca9d4c0332415f8985b7399a3f28e3b257a457f1",
+    "bytes": 812773
+  },
+  {
+    "id": "bertsimas2005",
+    "title": "Bertsimas and Popescu (2005)",
+    "url": "https://www.mit.edu/~dbertsim/papers/MomentProblems/Optimal-inequalities-in-probability-theory-A-convex-optimization-approach-SIAM15.pdf",
+    "status": "full_text_retrieved_relevant_sections_read",
+    "sections": "Sections 1–2 and Proposition 6.3",
+    "sha256": "1eceb8733ef9d56e45cda38b55afcb0d624a6eff9d1949e6801d402065d3063a",
+    "bytes": 254804
+  },
+  {
+    "id": "kuncheva2003",
+    "title": "Kuncheva and Whitaker (2003)",
+    "url": "https://lucykuncheva.co.uk/papers/lkml.pdf",
+    "status": "full_text_retrieved_relevant_sections_read",
+    "sections": "Sections 3–5, 6.3, 7",
+    "sha256": "8e28a4859f87c9096745a6a0923594d3854960b7744d5039972c1ae85f997d0a",
+    "bytes": 531149
+  },
+  {
+    "id": "kuncheva_limits2003",
+    "title": "Kuncheva et al. (2003)",
+    "url": "https://lucykuncheva.co.uk/papers/lkpaa.pdf",
+    "status": "full_text_retrieved_relevant_sections_read",
+    "sections": "Sections 2–3, 4.3, 5",
+    "sha256": "f30f776a70be7e9f3967a174deca7b65647da53ca5ec5f2d6e1024430e687258",
+    "bytes": 300817
+  },
+  {
+    "id": "fontana2021",
+    "title": "Fontana and Semeraro (2021)",
+    "url": "https://arxiv.org/pdf/2101.07693",
+    "status": "full_text_retrieved_relevant_sections_read",
+    "sections": "Section 2, equations 2.1–2.5 and Propositions 2.1–2.3; Section 3",
+    "sha256": "81f007336daa455a244bcdc3ee996d551f4b3cfbd1e1b6357efb6727d62881de",
+    "bytes": 550971
+  },
+  {
+    "id": "boros1989",
+    "title": "Boros and Prékopa (1989)",
+    "url": "https://doi.org/10.1287/moor.14.2.317",
+    "status": "metadata_and_abstract_only",
+    "metadata_url": "https://api.crossref.org/works/10.1287/moor.14.2.317",
+    "limitation": "Publisher PDF request blocked by environment proxy (403); no formula-level comparison claimed."
+  }
+]
