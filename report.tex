@@ -1,66 +1,318 @@
 \documentclass{article}
 \usepackage[main,final]{neurips_2026}
 \usepackage{amsmath,amssymb,amsthm,mathtools}
-\usepackage{booktabs}
-\usepackage{microtype}
-\usepackage{url}
+\usepackage{booktabs,graphicx,microtype,url}
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}{Proposition}
-\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
 \newcommand{\Prb}{\mathbb P}
 \newcommand{\Ex}{\mathbb E}
 \newcommand{\ind}{\mathbf 1}
-
-\title{What Marginals and Correlations Can Tell Us About Ensemble Voting}
+\title{Sharp Guarantees for Ensemble Voting\\
+An Elementary Analysis of Dependence}
 \author{DSAA2011 Project 2 Team}
-
 \begin{document}
 \maketitle
-
 \begin{abstract}
-An ensemble can have highly accurate members and still perform poorly when their errors depend on one another. We derive the exact minimum majority-vote accuracy over every joint distribution with prescribed, possibly unequal, member accuracies. The answer is a maximum of only $K-t+1$ expressions in the sorted accuracies, where $t=(K+1)/2$. In the equal-accuracy case, independent voting approaches perfect accuracy for $p>1/2$, while worst-case voting approaches $2p-1$. We also solve exactly the minimum and maximum voting accuracy for three classifiers given all marginal accuracies and pairwise correlations. Even zero pairwise correlation leaves a large interval of possible ensemble accuracies. An exact linear program handles arbitrary $K$ with prescribed pairwise moments. Finally, under unrestricted dependence, optimizing nonnegative voting weights has minimax value equal to the accuracy of the best single classifier.
+Individual accuracies and pairwise correlations leave majority-vote accuracy undetermined, but they can still certify an improvement. After solving the assignment's marginal and three-voter cases, we give an elementary specialization of the classical discrete moment problem to every odd ensemble size. Integer quadratic inequalities and a planar construction provide the exact attainable accuracy interval. A one-line comparison of adjacent certificates reduces its evaluation to constant time. We then derive an explicit necessary-and-sufficient correlation threshold for voting to outperform each equally accurate member, with a three-point counterexample at the threshold. The improvement over the usual continuous moment guarantee separates exactly into a threshold correction and an integer-support correction. For accuracy $0.6$ and pairwise independence, the first odd ensemble size with a strict guaranteed gain is $27$, whereas the usual C-bound first certifies a gain at $37$. These are population results, verified independently against finite linear programs.
 \end{abstract}
 
-\section{Introduction and setup}
-Consider an odd number $K=2m+1$ of fixed binary classifiers evaluated on a random example $(X,Y)$. Write $Z_i=\ind\{f_i(X)=Y\}$ and $p_i=\Prb(Z_i=1)$. The number correct is $S=\sum_{i=1}^K Z_i$, and majority-vote accuracy is
+\section{Question, scope, and relationship to prior work}
+Let $K=2m+1\ge3$, $t=m+1$, $Z_i=\ind\{f_i(X)=Y\}$, and $p_i=\Prb(Z_i=1)$. The accuracy of the binary majority vote is
 \begin{equation}\label{eq:accuracy}
- A=\Prb(S\ge t),\qquad t=m+1=(K+1)/2.
+ S=\sum_{i=1}^K Z_i,\qquad A=\Prb(S\ge t).
 \end{equation}
-The joint law of $(Z_1,\ldots,Z_K)$ matters: its marginals alone do not specify the law of $S$. We study the smallest possible $A$ under specified information, with no assumption that classifiers make independent errors. Any law on $\{0,1\}^K$ can arise in the stated classification model: take $X$ to be the vector of correctness indicators, set $Y=1$, and define $f_i(X)=X_i$. Thus our extremal constructions are legitimate fixed classifiers on a random binary classification example, rather than merely abstract Bernoulli couplings.
+The case $K=1$ simply has $A=p_1$. Any joint law of the $Z_i$ is realizable by fixed classifiers: take $X=Z$, $Y=1$, and $f_i(X)=X_i$. Thus the extremal laws below respect the assignment's model.
 
-This problem has established antecedents. Classifier-diversity measures and their relation to ensemble accuracy were studied by \citet{kuncheva2003}. Majority-vote risk bounds using first- and second-order information appear in the PAC-Bayesian work of \citet{germain2015} and \citet{masegosa2020}. The extremization over distributions with specified moments belongs to the broader literature on optimal probability inequalities \citep{bertsimas2005}; the importance of higher-order interactions among binary variables was already explicit in \citet{bahadur1961}. Our goal is a self-contained solution of this assignment's precise population-level constraints, with finite-sample proofs and attainable bounds. We do not claim that the general moment-programming method or the observation that pairwise information can be insufficient is new.
+We ask what marginal and pairwise data determine, and \emph{when they guarantee that voting beats a member}. With equal accuracies this means $\inf A>p$, rather than improvement under just one favorable dependence structure.
 
-\section{Independence versus arbitrary dependence}
-\subsection{Independent classifiers}
-If the $Z_i$ are independent and identically distributed Bernoulli$(p)$, then
+\paragraph{What is already known.}
+\citet{kuncheva2003} show that diversity alone does not determine accuracy; \citet{kunchevalimits2003} study extreme patterns and dependence thresholds. \citet{germain2015} derive the C-bound from margin moments, and \citet{masegosa2020} study second-order oracle and PAC-Bayesian bounds. Sharp event-count inequalities, moment optimization, and count representations of exchangeable Bernoulli laws are classical \citep{boros1989,bertsimas2005,fontana2021}.
+
+\paragraph{Contribution of this project.}
+We do not claim the first sharp two-moment inequality. We give an elementary, constructive solution with constant-time evaluation, an explicit finite-$K$ strict-benefit threshold, and a precise separation of two improvements over continuous bounds. This is a simplification and synthesis within the original problem. The proofs use quadratic inequalities and planar geometry; the repository records the literature comparison and reproducible checks.
+
+\clearpage
+\section{Part I: independence and unrestricted dependence}
+\subsection{The independent benchmark}
+For iid Bernoulli$(p)$ correctness indicators,
 \begin{equation}\label{eq:binomial}
- A_{\rm ind}(K,p)=\sum_{j=t}^{K}\binom Kj p^j(1-p)^{K-j}.
+ A_{\rm ind}(K,p)=\sum_{s=t}^K\binom Ks p^s(1-p)^{K-s}.
 \end{equation}
-This increases strictly as $K$ runs through odd integers when $p>1/2$, decreases strictly when $p<1/2$, and equals $1/2$ when $p=1/2$. Indeed, conditioning on the first $K$ votes gives the exact increment
+Conditioning on the original $K$ votes gives
 \begin{equation}\label{eq:increment}
  A_{\rm ind}(K+2,p)-A_{\rm ind}(K,p)
  =\binom K{(K-1)/2}[p(1-p)]^{(K+1)/2}(2p-1).
 \end{equation}
-The only changed outcomes are those where the original count sits on either side of its majority threshold; their probabilities give \eqref{eq:increment}. For $p>1/2$, Hoeffding's inequality \citep{hoeffding1963} further gives
-$1-A_{\rm ind}(K,p)\leq \exp[-2K(p-1/2)^2]$; for $p<1/2$, the same upper bound holds for $A_{\rm ind}(K,p)$. Thus independent voters with $p>1/2$ become almost surely correct as $K$ grows.
+Only counts $m$ and $m+1$ can change the outcome after two votes are added. Hence accuracy strictly increases for $1/2<p<1$, strictly decreases for $0<p<1/2$, and stays $1/2$ at $p=1/2$. Chebyshev's inequality applied to $S/K$ shows $A_{\rm ind}\to1$ for fixed $p>1/2$, and $A_{\rm ind}\to0$ for $p<1/2$. For unequal independent accuracies, $\Prb(S=s)$ is the coefficient of $z^s$ in $\prod_i(1-p_i+p_i z)$; replacing the $p_i$ by their mean is generally invalid.
 
-For independent but unequal accuracies, the generating polynomial
-$G(z)=\prod_{i=1}^K[(1-p_i)+p_i z]$ has $\Prb(S=j)=[z^j]G(z)$, hence $A_{\rm ind}=\sum_{j=t}^K[z^j]G(z)$. This Poisson-binomial calculation remains exact but relies on the entire product law; substituting the mean accuracy into \eqref{eq:binomial} is generally wrong.
-
-\subsection{Exact worst-case result for unequal accuracies}
-Let $p_{(1)}\ge\cdots\ge p_{(K)}$ denote the sorted accuracies and $P_r=\sum_{i=1}^r p_{(i)}$. All infima below range over joint distributions with the stated marginals.
-
-\begin{theorem}[Sharp heterogeneous lower envelope]\label{thm:marginal}
-For $t=(K+1)/2$,
-\begin{equation}\label{eq:heterogeneous}
- A_-(p_1,\ldots,p_K)
- :=\inf\Prb(S\ge t)
- =\max\left\{0,\ \max_{t\le r\le K}
- \frac{P_r-(t-1)}{r-t+1}\right\}.
+\subsection{Sharp marginal-only bounds}
+With equal marginals, the pointwise inequality $S\le m+(m+1)\ind\{S\ge t\}$ gives
+\begin{equation}\label{eq:equal}
+ A_-^{\rm marg}(K,p)=\max\left\{0,\frac{Kp-m}{m+1}\right\},\qquad
+ A_+^{\rm marg}(K,p)=\min\left\{1,\frac{Kp}{m+1}\right\}.
 \end{equation}
-The infimum is attained. Sorting and evaluating the formula takes $O(K\log K)$ time.
-\end{theorem}
+For the lower bound when $Kp>m$, put probability $a=(Kp-m)/(m+1)$ on $S=K$ and $1-a$ on $S=m$. Conditional on a count, choose its correct voters uniformly. Each marginal is $p$ and accuracy is $a$. When $Kp\le m$, mix the adjacent integers around $Kp$, so the vote never wins. Complementing all correctness indicators proves and attains the upper bound; mixing endpoint laws fills the interval.
 
+For $p>1/2$, the lower bound equals
+\begin{equation}
+ A_-^{\rm marg}(K,p)=2p-1+\frac{2(1-p)}{K+1}\longrightarrow2p-1.
+\end{equation}
+It decreases with odd $K$ for $p<1$, the opposite of independence. At $p=0.6$, three voters range from $0.4$ to $0.9$, although the independent value is $0.648$.
+
+For unequal marginals, sort $p_{(1)}\ge\cdots\ge p_{(K)}$ and put $P_r=\sum_{i=1}^r p_{(i)}$. The complete marginal answer is
+\begin{equation}\label{eq:heterogeneous}
+ A_-^{\rm marg}(p_1,\ldots,p_K)
+ =\max\left\{0,\max_{t\le r\le K}\frac{P_r-m}{r-m}\right\},\qquad
+ A_+^{\rm marg}(p)=1-A_-^{\rm marg}(1-p).
+\end{equation}
+Any $r$ voters have at most $m$ successes on a losing vote, which proves every lower certificate. Appendix~\ref{app:marginal} gives the attaining construction. For $(0.9,0.9,0.1)$ the sharp minimum is $0.8$; a mean-only calculation gives just $0.45$.
+
+\paragraph{Why weights alone cannot resolve ignorance.}
+For nonnegative weights summing to one and strict weighted majority, the marginal-only minimax accuracy is $\max_i p_i$. Selecting the best classifier attains it. Conversely, $Z_i=\ind\{U\le p_i\}$ with a common uniform $U$ makes every rule fail whenever $U>\max_i p_i$. This explains why dependence information, rather than weight optimization alone, is necessary for a guaranteed ensemble gain.
+
+\clearpage
+\section{Part II: the exact three-voter answer}
+Let $r_{ij}=\Ex Z_iZ_j$. For nondegenerate marginals the correlation fixes
+\begin{equation}
+ r_{ij}=p_ip_j+\rho_{ij}\sqrt{p_i(1-p_i)p_j(1-p_j)}.
+\end{equation}
+At $p_i=0$ or $1$, correlation is undefined; use joint moments directly. For $K=3$ all eight probabilities are determined by $q=\Prb(111)$ and the first two moments:
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Configuration & Probability\\\midrule
+$111$ & $q$\\
+$110,101,011$ & $r_{12}-q,\ r_{13}-q,\ r_{23}-q$\\
+$100$ & $p_1-r_{12}-r_{13}+q$\\
+$010$ & $p_2-r_{12}-r_{23}+q$\\
+$001$ & $p_3-r_{13}-r_{23}+q$\\
+$000$ & $1-\sum_i p_i+\sum_{i<j}r_{ij}-q$\\\bottomrule
+\end{tabular}
+\end{center}
+Define
+\begin{align}
+ L&=\max(0,r_{12}+r_{13}-p_1,r_{12}+r_{23}-p_2,r_{13}+r_{23}-p_3),\\
+ U&=\min(r_{12},r_{13},r_{23},1-\textstyle\sum_i p_i+\sum_{i<j}r_{ij}).
+\end{align}
+Nonnegativity is exactly $L\le q\le U$, so the moments are feasible iff $L\le U$. Since $A=\sum_{i<j}r_{ij}-2q$, the complete attainable interval is
+\begin{equation}\label{eq:threeinterval}
+ \boxed{\ \sum_{i<j}r_{ij}-2U\ \le A\le\sum_{i<j}r_{ij}-2L.\ }
+\end{equation}
+These are exact distributions, not just necessary inequalities.
+
+\subsection{Equal accuracies and equal correlations}
+For $p_i=p$, $\rho_{ij}=\rho$, put $r=p^2+\rho p(1-p)$. Then
+\begin{equation}\label{eq:equal3}
+ L=\max(0,2r-p),\quad U=\min(r,1-3p+3r),\quad
+ A_{\min}=3r-2U,\quad A_{\max}=3r-2L.
+\end{equation}
+The feasible interval is $\max(0,p-1/3,2p-1)\le r\le p$.
+For $Q_s=\Prb(S=s)$, the count law is
+\begin{equation}
+ (Q_0,Q_1,Q_2,Q_3)=(1-3p+3r-q,\ 3p-6r+3q,\ 3r-3q,\ q).
+\end{equation}
+At $p=0.6$, $\rho=0$, each pair is independent, yet:
+\begin{center}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Law & $Q_0$ & $Q_1$ & $Q_2$ & $Q_3$ & $A$\\\midrule
+Worst admissible & 0 & .48 & .24 & .28 & .52\\
+Joint independence & .064 & .288 & .432 & .216 & .648\\
+Best admissible & .16 & 0 & .72 & .12 & .84\\\bottomrule
+\end{tabular}
+\end{center}
+Uniform allocation within each count gives the same $p$ and $r$ in all rows. The unobserved triple success probability changes the vote. At $p=1/2,\rho=0$ the interval is $[1/4,3/4]$. Also, Bernoulli feasibility is stronger than positive semidefiniteness of the correlation matrix: for $p=1/2$ it requires $\rho\ge-1/3$, whereas an equicorrelation matrix permits $\rho=-1/2$.
+
+\clearpage
+\section{A sharp integer-moment solution for every odd $K$}
+\subsection{Symmetrization removes exponential enumeration}
+Assume all $p_i=p$ and all $r_{ij}=r$. Uniformly permuting classifier indices preserves these constraints and $A$. Conversely, any count law on $\{0,\ldots,K\}$, followed by a uniformly chosen subset of the specified size, has
+\begin{equation}\label{eq:moments}
+ \mu:=\Ex S=Kp,\qquad \nu:=\Ex S(S-1)=K(K-1)r.
+\end{equation}
+Thus this reduction is exact; it does not assume the original classifiers were exchangeable. Feasible moments form the polygon with vertices $v_s=(s,s(s-1))$. If $b=\lfloor\mu\rfloor$, feasibility is exactly
+\begin{equation}\label{eq:feasible}
+ 0\le\mu\le K,\qquad 2b\mu-b(b+1)\le\nu\le(K-1)\mu.
+\end{equation}
+Indeed, adjacent counts minimize the second factorial moment at fixed mean, and counts $0,K$ maximize it. Mixing those laws fills the interval. This is finite exchangeability, with no iid-mixture assumption that would incorrectly exclude negative correlation.
+
+\subsection{Quadratic certificates and the exact bound}
+Write $D_j=(j-m)(j+1-m)$ and define
+\begin{equation}\label{eq:BK}
+ B_K(\mu,\nu)=\max\left\{0,\frac{\nu-(m-1)\mu}{K(K-m)},\
+ \max_{m+1\le j\le K-1}\left[1-\frac{\nu-2j\mu+j(j+1)}{D_j}\right]\right\}.
+\end{equation}
+\begin{theorem}[Sharp count bound]\label{thm:count}
+For every feasible pair $(\mu,\nu)$, the complete attainable accuracy interval is
+\begin{equation}\label{eq:countinterval}
+ B_K(\mu,\nu)\ \le A\le\
+ 1-B_K\bigl(K-\mu,K(K-1)-2(K-1)\mu+\nu\bigr).
+\end{equation}
+Each endpoint is attained by a count law supported on at most three integers, followed by uniform allocation of successes to classifiers.
+\end{theorem}
+\begin{proof}[Proof of validity]
+For every integer $s\in\{0,\ldots,K\}$, the following functions lie below $\ind\{s\ge m+1\}$:
+\begin{equation}\label{eq:polynomials}
+ 0,\qquad h(s)=\frac{s(s-m)}{K(K-m)},\qquad
+ g_j(s)=1-\frac{(s-j)(s-j-1)}{D_j}.
+\end{equation}
+For $s\le m$, $h(s)\le0$, and $(s-j)(s-j-1)\ge D_j$ gives $g_j(s)\le0$. For $s\ge m+1$, $s(s-m)\le K(K-m)$, while the product of two consecutive integers is nonnegative, giving $g_j(s)\le1$. Taking expectations proves \eqref{eq:BK}. Replacing $S$ by $K-S$ proves the upper bound. The attaining construction follows on the next page.
+\end{proof}
+
+This proof shows exactly where discreteness matters: a quadratic can be nonnegative on every integer while negative between consecutive integers. A continuous moment bound discards that useful restriction. For $K=3$, \eqref{eq:BK} reduces to $\max(0,r,6p-3r-2)$, precisely the lower endpoint in \eqref{eq:equal3}. Unlike a $2^K$-cell optimization, the certificate family grows only linearly in $K$; it can be evaluated even faster.
+
+\clearpage
+\subsection{An elementary attaining construction}
+Draw a fan from $v_m$ in the moment polygon. Its pieces are the lower-count polygon $\operatorname{conv}(v_0,\ldots,v_m)$, the bridge triangle $\operatorname{conv}(v_0,v_m,v_K)$, and the triangles
+$\operatorname{conv}(v_m,v_j,v_{j+1})$, $m+1\le j\le K-1$.
+Every feasible moment point lies in one of these pieces. Its convex coefficients specify a count law:
+\begin{itemize}
+\item In the lower-count polygon, all counts are at most $m$, so $A=0$. A fan triangulation inside it needs at most three counts.
+\item In the bridge triangle, $h$ equals the event indicator at $0,m,K$; the law attains $\Ex h$.
+\item In a remaining triangle, $g_j$ equals the indicator at $m,j,j+1$; the law attains $\Ex g_j$.
+\end{itemize}
+Because all certificates are lower bounds, the matching certificate must equal their maximum. This completes the proof of Theorem~\ref{thm:count}, including boundaries and zero weights. Mixtures of endpoint laws give every intermediate accuracy. Figure~\ref{fig:polygon} visualizes the construction.
+\begin{figure}[h]
+\centering
+\includegraphics[width=.66\linewidth]{figures/moment_polygon.pdf}
+\caption{The feasible moment polygon. Green uses only losing counts; orange attains $h$; blue triangles attain successive $g_j$. Vertex labels are counts $s$.}\label{fig:polygon}
+\end{figure}
+
+\subsection{Constant-time evaluation by comparing adjacent certificates}
+Put $d=\mu-m$, $v=\Ex(S-m)^2=\nu-(2m-1)\mu+m^2$, and $j=m+a$. Then
+\begin{equation}\label{eq:Ga}
+ G_a:=\Ex g_{m+a}(S)=\frac{(2a+1)d-v}{a(a+1)},\quad 1\le a\le m,
+ \qquad G_a-G_{a+1}=\frac{2[(a+1)d-v]}{a(a+1)(a+2)}.
+\end{equation}
+If $d\le0$, every $G_a\le0$. If $d>0$, the sequence increases until $a+1$ crosses $v/d$ and then decreases. Consequently a maximizing index is
+\begin{equation}\label{eq:fast}
+ a_* = \min\{m,\max\{1,\lfloor v/d\rfloor\}\}.
+\end{equation}
+Thus $B_K$ requires only the comparison of zero, $\Ex h$, and $G_{a_*}$; ties at integer ratios are harmless. This is $O(1)$ arithmetic once $\mu,\nu$ are known. Reading arbitrary pairwise inputs would itself take $O(K^2)$ time; we make no constant-time claim for that task. On an adjacent triangle, the explicit probabilities are
+\begin{equation}\label{eq:adjacentweights}
+ Q_{m+a}=\frac{(a+1)d-v}{a},\quad
+ Q_{m+a+1}=\frac{v-ad}{a+1},\quad Q_m=1-Q_{m+a}-Q_{m+a+1}.
+\end{equation}
+Use these only on that triangle; the bridge has a different attaining law.
+
+\clearpage
+\section{Exactly when is voting guaranteed to beat its members?}
+Now fix $1/2<p<1$. Every member has accuracy $p$, so a strict guaranteed gain means $A_{\min}>p$. Let
+\begin{align}
+ x&=\frac{Kp-(1-p)m}{p},\quad j=\lfloor x\rfloor,\quad\theta=x-j,\label{eq:x}\\
+ \nu_*&=(1-p)m(m-1)+p[2jx-j(j+1)],\label{eq:nustar}\\
+ \rho_*&=\frac{\nu_*/[K(K-1)]-p^2}{p(1-p)}.\label{eq:rhostar}
+\end{align}
+Here $m+1<x<K$, so $j$ is a valid certificate index.
+\begin{theorem}[Exact strict-benefit threshold]\label{thm:threshold}
+For every feasible common correlation $\rho$,
+\begin{equation}\label{eq:iff}
+ \boxed{\quad A_{\min}(K,p,\rho)>p\quad\Longleftrightarrow\quad\rho<\rho_*.\quad}
+\end{equation}
+At equality, $A_{\min}=p$. For every $\rho\ge\rho_*$ in the feasible range, there is an admissible law whose majority accuracy is exactly $p$.
+\end{theorem}
+\begin{proof}
+Since $\nu\le K(K-1)p$, the bridge certificate satisfies $\Ex h\le p$. Thus a strict gain occurs iff at least one $g_\ell$ has expectation greater than $p$. Rearranging this inequality gives $\nu<T_\ell$, where
+\begin{align}
+ T_\ell&=2\ell Kp+(1-p)(\ell-m)(\ell+1-m)-\ell(\ell+1)\nonumber\\
+ &=(1-p)m(m-1)+p[2\ell x-\ell(\ell+1)].\label{eq:T}
+\end{align}
+This is a concave quadratic in the integer $\ell$. Its maximum is at $\ell=\lfloor x\rfloor$, with a possible adjacent tie when $x$ is integral. The maximum is exactly $\nu_*$. Since $\nu$ increases strictly with $\rho$, this proves \eqref{eq:iff}.
+
+For a direct boundary construction, put probabilities
+\begin{equation}\label{eq:boundarylaw}
+ (1-p,\ p(1-\theta),\ p\theta)\quad\text{on counts}\quad(m,j,j+1).
+\end{equation}
+Its mean is $Kp$, factorial second moment is $\nu_*$, and accuracy is $p$. Uniform allocation realizes all the specified one- and two-voter moments. The same certificate gives $A\ge p$, proving equality at the threshold. Finally, mix \eqref{eq:boundarylaw} with the synchronized law $\Prb(S=K)=p$, $\Prb(S=0)=1-p$. This fills every moment from $\nu_*$ to $K(K-1)p$ while preserving accuracy $p$, proving the last assertion.
+\end{proof}
+
+For $K=3$, this simplifies to $\rho_*=1-2/(3p)$. In particular $p=0.6$ needs $\rho<-1/9$ for a strict guaranteed gain: zero or slightly negative correlation does not suffice. This resolves the question quantitatively rather than treating the sign of correlation as a decision rule. For larger $K$, only one floor operation is needed, and the explicit counterexample explains why the condition cannot be weakened.
+
+\clearpage
+\section{What is gained over continuous moment bounds?}
+Let $\sigma^2=\operatorname{Var}(S)=Kp(1-p)[1+(K-1)\rho]$ and $d=Kp-m>0$.
+The ordinary C-bound applied to $M=2S/K-1$ guarantees
+\begin{equation}\label{eq:c_bound}
+ A\ge C_K=\frac{(2p-1)^2}{(2p-1)^2+4\sigma^2/K^2}.
+\end{equation}
+A fairer elementary baseline first uses the correct failure threshold $S\le m$. Cantelli then gives
+\begin{equation}\label{eq:shifted}
+ A\ge C_K^{\rm shift}=\frac{d^2}{d^2+\sigma^2}.
+\end{equation}
+Since Theorem~\ref{thm:count} is exact for the specified integer support, its lower endpoint is at least both bounds. The latter can still be loose when Cantelli's attaining second support point is nonintegral or outside $[0,K]$.
+
+The boundary law \eqref{eq:boundarylaw} has variance
+$(1-p)d^2/p+p\theta(1-\theta)$. Consequently
+\begin{equation}\label{eq:lattice}
+ \rho_*=\frac{d^2}{K(K-1)p^2}-\frac1{K-1}
+ +\frac{\theta(1-\theta)}{K(K-1)(1-p)}.
+\end{equation}
+The first two terms are exactly the strict-benefit threshold certified by shifted Cantelli. The last, nonnegative term is the additional integer-support correction. It vanishes when $x$ is integral. For the original C-bound threshold
+$\rho_C=[K(2p-1)^2/(4p^2)-1]/(K-1)$, the full difference is
+\begin{equation}\label{eq:decomposition}
+ \rho_*-\rho_C
+ =\underbrace{\frac{p-1/2+1/(4K)}{(K-1)p^2}}_{\text{correct failure threshold}}
+ +\underbrace{\frac{\theta(1-\theta)}{K(K-1)(1-p)}}_{\text{integer support}}.
+\end{equation}
+Both comparisons concern population guarantees, not finite-sample estimation or learned weights. For fixed $p\in(1/2,1)$,
+\begin{equation}\label{eq:limit}
+ \lim_{K\to\infty,\ K\text{ odd}}\rho_*(K,p)=\left(1-\frac1{2p}\right)^2.
+\end{equation}
+This is a limit of finite-ensemble thresholds, not an assumption that the extremal laws for different $K$ form one infinite exchangeable sequence.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/bounds.pdf}
+\caption{Exact attainable intervals and guarantee thresholds at $p=0.6$. Left: accuracy need not decrease monotonically with correlation. Right: a strict gain is certified below the respective curve, within the feasible correlation range. The vertical range is cropped to show the finite-$K$ comparison; the gray horizontal line is the limiting threshold.}\label{fig:bounds}
+\end{figure}
+
+\clearpage
+\section{Reproducible checks, a concrete consequence, and limitations}
+\subsection{Checks designed to falsify the formulas}
+The repository includes a notebook, pinned Python dependencies, and an executable script using seed 20261013. It verifies every quadratic inequality on its integer support, constructs attaining laws, and compares the analytic endpoints with independent optimization. The count LP minimizes/maximizes $\sum_{s>m}Q_s$ subject to normalization and the two moments. For $K\le7$, a separate $2^K$-configuration LP constrains \emph{every} $p_i$ and $r_{ij}$. Its objectives and constraints do not use the analytic bounds.
+
+The completed run checks 702 count-moment instances (both extrema), 41 full binary instances (both extrema), 720 threshold instances, 2,576 individual certificate values, and 36 invalid moment pairs. Cases include point masses, sparse and dense random laws, $p=0,1$, polygon boundaries, and integral $x$. The largest absolute count-LP discrepancy is below $3\times10^{-14}$. The constant-time formula is additionally checked against the full certificate maximum. These computations detect implementation errors; the proofs establish the claims beyond the checked cases.
+
+\subsection{Pairwise independence is eventually sufficient, but not immediately}
+For $p=0.6$, $\rho=0$, Table~\ref{tab:comparison} compares attainable bounds with joint independence and the two continuous guarantees. The initial drop from $K=3$ to $K=5$ concerns the worst laws at each size, not an assertion about extending one fixed joint law.
+\begin{table}[h]
+\centering
+\caption{Population accuracy at $p=0.6$, $\rho=0$; all numbers follow from formulas.}\label{tab:comparison}
+\input{results/comparison_table.tex}
+\end{table}
+\begin{corollary}
+With common accuracy $3/5$ and pairwise independence, majority voting has a strict guaranteed gain iff odd $K\ge27$.
+\end{corollary}
+Indeed, for $K=2m+1$, substituting $p=3/5$ into \eqref{eq:lattice} yields
+\begin{equation}
+ \rho_*=\frac{m-12+(5/m)\ind\{3\nmid m\}}{18(2m+1)}.
+\end{equation}
+It is negative for $1\le m\le11$, zero at $m=12$, and positive for $m\ge13$. Theorem~\ref{thm:threshold} proves the claim. Shifted Cantelli also certifies the first strict gain at $27$ here because the boundary at $25$ has integral $x$. The ordinary C-bound is $K/(K+24)$ and requires $K>36$. We therefore do not attribute this entire improvement to the lattice correction.
+
+\paragraph{Limitations and conclusion.}
+For unequal specified pairwise moments, the general configuration LP remains exact (Appendix~\ref{app:general}); aggregate count moments alone may lose sharpness. Estimated moments need uncertainty regions, and no finite-sample confidence claim is made here. The main insight is constructive: pairwise information need not identify accuracy to certify a gain, and finite integer support can make that certification sharper and simpler than a generic moment calculation.
+
+\clearpage
+\begin{thebibliography}{9}
+\bibitem[Bertsimas and Popescu(2005)]{bertsimas2005}
+D. Bertsimas and I. Popescu. Optimal inequalities in probability theory: A convex optimization approach. \emph{SIAM Journal on Optimization}, 15(3):780--804, 2005.
+\bibitem[Boros and Pr\'ekopa(1989)]{boros1989}
+E. Boros and A. Pr\'ekopa. Closed form two-sided bounds for probabilities that at least $r$ and exactly $r$ out of $n$ events occur. \emph{Mathematics of Operations Research}, 14(2):317--342, 1989. doi:10.1287/moor.14.2.317.
+\bibitem[Fontana and Semeraro(2021)]{fontana2021}
+R. Fontana and P. Semeraro. Exchangeable Bernoulli distributions: High dimensional simulation, estimate and testing. arXiv:2101.07693, 2021.
+\bibitem[Germain et~al.(2015)]{germain2015}
+P. Germain, A. Lacasse, F. Laviolette, M. Marchand, and J.-F. Roy. Risk bounds for the majority vote: From a PAC-Bayesian analysis to a learning algorithm. \emph{Journal of Machine Learning Research}, 16:787--860, 2015.
+\bibitem[Kuncheva and Whitaker(2003)]{kuncheva2003}
+L. I. Kuncheva and C. J. Whitaker. Measures of diversity in classifier ensembles and their relationship with the ensemble accuracy. \emph{Machine Learning}, 51:181--207, 2003.
+\bibitem[Kuncheva et~al.(2003)]{kunchevalimits2003}
+L. I. Kuncheva, C. J. Whitaker, C. A. Shipp, and R. P. W. Duin. Limits on the majority vote accuracy in classifier fusion. \emph{Pattern Analysis and Applications}, 6:22--31, 2003.
+\bibitem[Masegosa et~al.(2020)]{masegosa2020}
+A. R. Masegosa, S. S. Lorenzen, C. Igel, and Y. Seldin. Second order PAC-Bayesian bounds for the weighted majority vote. In \emph{Advances in Neural Information Processing Systems}, 2020.
+\end{thebibliography}
+
+\appendix
+\section{Attainment for heterogeneous marginals}\label{app:marginal}
+We prove the lower formula \eqref{eq:heterogeneous}; complementing correctness indicators gives its upper counterpart. The following proof is retained from the initial report to keep all assignment cases fully justified.
 \begin{proof}
 Write $E=\{S\ge t\}$ and $a=\Prb(E)$. For a subset $I$ of $r\ge t$ voters, at most $t-1$ of them are correct on $E^c$ and at most $r$ on $E$. Consequently,
 \begin{equation}\label{eq:subsetbound}
@@ -88,223 +340,30 @@ For $0<a<1$, the vectors $x/(1-a)$ and $y/a$ lie in
 respectively. Both polytopes are convex hulls of their $0$--$1$ vectors: at a vertex, two fractional coordinates could be perturbed in opposite directions if the sum constraint were active, while a lone fractional coordinate could be perturbed if it were inactive; one fractional coordinate cannot make an active integer-valued sum. Hence we can realize $x/(1-a)$ using outcomes with at most $t-1$ correct voters, and $y/a$ using outcomes with at least $t$ correct voters. Mix these laws with probabilities $1-a$ and $a$. Equation \eqref{eq:split} gives every marginal $p_i$, and the event probability is exactly $a$. The cases $a=0$ or $1$ follow by using only the corresponding cardinality polytope.
 \end{proof}
 
-The formula yields a simple constructive algorithm: compute $a$, decompose the two points in \eqref{eq:split} into cardinality-constrained binary vectors, then mix the resulting distributions. Such a decomposition can be found by linear programming or repeated vertex splitting. The theorem concerns accuracy alone; it does not require a unique worst-case dependence structure.
-
-\begin{proposition}[Complete interval with marginal information]\label{prop:upper}
-Let $A_+(p)=\sup\Prb(S\ge t)$ over the same marginal class. Then
-\begin{equation}\label{eq:upper}
- A_+(p_1,\ldots,p_K)=1-A_-(1-p_1,\ldots,1-p_K).
-\end{equation}
-Both endpoints, and every accuracy between them, are attained. In particular, when all $p_i=p$,
-$A_+(p,\ldots,p)=\min\{1,Kp/t\}$.
-\end{proposition}
-\begin{proof}
-Let $E_i=1-Z_i$ be the error indicators. Because $K=2t-1$, the vote fails exactly when $\sum_iE_i\ge t$. The smallest possible failure probability with error marginals $1-p_i$ is Theorem~\ref{thm:marginal}'s $A_-$ for those marginals. Taking the complement proves \eqref{eq:upper} and endpoint attainment. Mixtures of an upper- and a lower-extremizing law preserve all marginals and interpolate their accuracies. Substitution of \eqref{eq:equal} gives the equal-$p$ formula.
-\end{proof}
-
-\subsection{Equal accuracies and examples}
-If all $p_i=p$, the expression in \eqref{eq:heterogeneous} increases with $r$ whenever $p<1$: as a function of $r$ it equals $p-(t-1)(1-p)/(r-t+1)$. The maximizing choice is $r=K$. Thus
-\begin{equation}\label{eq:equal}
- A_-(p,\ldots,p)=\max\left\{0,\frac{Kp-(t-1)}{K-t+1}\right\}
- =\max\left\{0,\frac{Kp-m}{m+1}\right\}.
-\end{equation}
-When $Kp>m$, put mass $a=A_-$ on the all-correct vector and mass $1-a$ on a uniformly chosen vector with exactly $m$ correct entries. Each voter then has success probability $a+(1-a)m/K=p$, and majority wins only in the all-correct outcome. When $Kp\le m$, mix uniformly chosen configurations with $\lfloor Kp\rfloor$ and $\lceil Kp\rceil$ correct entries to obtain each marginal $p$ while majority never wins. This explicitly attains both branches of \eqref{eq:equal}.
-
-For every fixed $p>1/2$, \eqref{eq:equal} becomes
-\begin{equation}\label{eq:limit}
- A_-(K,p)=2p-1+\frac{2(1-p)}{K+1}\ \longrightarrow\ 2p-1.
-\end{equation}
-The sequence strictly \emph{decreases} with odd $K$ when $p<1$, in contrast to independent voting. At $p=1/2$, $A_-=1/(K+1)$ while $A_{\rm ind}=1/2$; for $p<1/2$, $A_-$ eventually becomes zero. For $p=0.6$, three independent voters are correct with probability $0.648$, but the worst coupling gives $0.4$; for five voters these values are $0.68256$ and $1/3$. More individually good models therefore need not improve the worst-case ensemble.
-
-Unequal accuracies reveal why a bound based only on the mean accuracy can be loose. If $(p_1,p_2,p_3)=(0.9,0.9,0.1)$, the $r=2$ term in \eqref{eq:heterogeneous} equals $0.8$, while the $r=3$ term equals $0.45$. The first two classifiers must both be correct at least $80\%$ of the time. This $0.8$ bound is attained by making their errors disjoint and placing the third classifier's successes within the both-correct event. The average-accuracy bound, which uses only $r=3$, misses this structure. More generally, every prefix $P_r$ can be the active constraint in \eqref{eq:heterogeneous}; the sorted vector, not merely its mean, matters.
-
-The upper envelope from Proposition~\ref{prop:upper} completes the comparison. Even an excellent vote need not imply accurate individual members, and high individual accuracies alone do not imply an excellent vote. For $p=0.6$, Table~\ref{tab:envelopes} evaluates exact formulas rather than simulation estimates. By $K=11$ the independent vote has improved substantially, whereas the worst admissible vote is already close to its $0.2$ limit.
-
-\begin{table}[htbp]
-\centering
-\caption{Accuracy with equal marginal accuracy $p=0.6$ under three dependence assumptions. Values follow from \eqref{eq:binomial}, \eqref{eq:equal}, and \eqref{eq:upper}.}\label{tab:envelopes}
-\begin{tabular}{@{}rrrr@{}}
-\toprule
-$K$ & Worst coupling $A_-$ & Independent $A_{\rm ind}$ & Best coupling $A_+$ \\
-\midrule
-3 & 0.400000 & 0.648000 & 0.900000 \\
-5 & 0.333333 & 0.682560 & 1.000000 \\
-11 & 0.266667 & 0.753498 & 1.000000 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\section{What pairwise correlations determine}
-\subsection{A complete answer for three possibly unequal voters}
-For $K=3$, let $r_{ij}=\Ex[Z_iZ_j]$. When $0<p_i,p_j<1$, the specified correlation $\rho_{ij}$ fixes
-\begin{equation}\label{eq:rfromrho}
- r_{ij}=p_ip_j+\rho_{ij}\sqrt{p_i(1-p_i)p_j(1-p_j)}.
-\end{equation}
-The following result solves the full three-voter pairwise-moment problem, including unequal marginals. It also supplies a direct feasibility test that is stronger than checking a correlation matrix for positive semidefiniteness.
-
-\begin{theorem}[Exact three-voter interval]\label{thm:three}
-Define
-\begin{align}
- L&=\max\{0,\ r_{12}+r_{13}-p_1,\ r_{12}+r_{23}-p_2,\ r_{13}+r_{23}-p_3\},\label{eq:L}\\
- U&=\min\{r_{12},r_{13},r_{23},\ 1-p_1-p_2-p_3+r_{12}+r_{13}+r_{23}\}.\label{eq:U}
-\end{align}
-The moments are jointly feasible exactly when $L\le U$. Conditional on feasibility, every majority-vote accuracy in the interval
-\begin{equation}\label{eq:threeinterval}
- \boxed{\quad r_{12}+r_{13}+r_{23}-2U\ \le A\le\
- r_{12}+r_{13}+r_{23}-2L\quad}
-\end{equation}
-is attainable.
-\end{theorem}
-
-\begin{proof}
-Put $q=\Prb(Z_1=Z_2=Z_3=1)$. All eight cell probabilities are forced by $q$ and the given moments:
-\begin{center}
-\begin{tabular}{@{}ll@{}}
-\toprule
-Cell & Probability \\
-\midrule
-$111$ & $q$ \\
-$110,101,011$ & $r_{12}-q,\ r_{13}-q,\ r_{23}-q$ \\
-$100,010,001$ & $p_1-r_{12}-r_{13}+q,\ p_2-r_{12}-r_{23}+q,\ p_3-r_{13}-r_{23}+q$ \\
-$000$ & $1-\sum_i p_i+\sum_{i<j}r_{ij}-q$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-Nonnegativity of these cells is equivalent to $L\le q\le U$. Conversely, the listed cells sum to one and have precisely the requested one- and two-variable moments, so every such $q$ is feasible. Majority wins in cells $110,101,011,111$, hence $A=\sum_{i<j}r_{ij}-2q$. Its endpoints occur at $q=U$ and $q=L$, and mixing the endpoint laws attains every intermediate accuracy.
-\end{proof}
-
-\subsection{Equal marginals and equal correlations}
-For the assignment's main case, set $p_i=p$ and $\rho_{ij}=\rho$, with $0<p<1$. Write
-$r=p^2+\rho p(1-p)$. Theorem~\ref{thm:three} specializes to
-\begin{equation}\label{eq:equal3}
- L=\max(0,2r-p),\quad U=\min(r,1-3p+3r),\quad
- A_{\min}=3r-2U,\quad A_{\max}=3r-2L.
-\end{equation}
-The parameters are feasible exactly when
-\begin{equation}\label{eq:feasible-r}
- \max\{0,p-1/3,2p-1\}\le r\le p.
-\end{equation}
-One can see the remaining degree of freedom particularly clearly by symmetrizing any feasible law over voter permutations. If $Q_j=\Prb(S=j)$ and $q=Q_3$, then
-\begin{equation}\label{eq:Q}
- (Q_0,Q_1,Q_2,Q_3)=(1-3p+3r-q,\ 3p-6r+3q,\ 3r-3q,\ q).
-\end{equation}
-Choose a subset uniformly conditional on $S=j$ to realize this exchangeable law. Its individual accuracies and pairwise correlations remain $p$ and $\rho$. Thus \eqref{eq:equal3} gives actual constructions, not just moment bounds.
-
-The failure of pairwise information can be large even at \emph{zero} pairwise correlation. Set $p=0.6$ and $r=p^2=0.36$, so all pairs are independent. The following three laws have identical $p$ and $r$:
-\begin{center}
-\begin{tabular}{@{}lccccc@{}}
-\toprule
-Law & $Q_0$ & $Q_1$ & $Q_2$ & $Q_3$ & $A=Q_2+Q_3$ \\
-\midrule
-Minimum vote accuracy & $0$ & $0.48$ & $0.24$ & $0.28$ & $0.52$ \\
-Independent triple & $0.064$ & $0.288$ & $0.432$ & $0.216$ & $0.648$ \\
-Maximum vote accuracy & $0.16$ & $0$ & $0.72$ & $0.12$ & $0.84$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-In each row, conditional on $S=j$, distribute mass equally among the $\binom3j$ configurations. For example $\Ex S/3=0.6$ and $\Ex[S(S-1)]/6=0.36$ in every row. Nevertheless, the accuracy varies by $0.32$. The missing statistic is the third-order success probability $q=\Prb(111)$; zero correlation for Bernoulli pairs means pairwise independence, not joint independence.
-
-\begin{proposition}[Largest three-voter pairwise ambiguity]\label{prop:width}
-With equal $p$ and equal feasible $\rho$, the width of the voting-accuracy interval is
-$A_{\max}-A_{\min}=2(U-L)\le\min\{p,1-p\}\le1/2$.
-The upper bound $1/2$ is attained at $p=1/2$ and $\rho=0$, where the admissible vote accuracies are exactly $[1/4,3/4]$.
-\end{proposition}
-\begin{proof}
-If $p\le1/2$, then $U\le r$ and $L\ge\max(0,2r-p)$, giving
-$U-L\le\min\{r,p-r\}\le p/2$. If $p\ge1/2$, replace each $Z_i$ by $1-Z_i$. Because $K=3$, the majority accuracy for the complements is $1-A$, so its admissible interval has the same width; the previous argument applies with marginal $1-p$. For $p=1/2$ and $r=p^2=1/4$, \eqref{eq:equal3} yields $L=0$, $U=1/4$, and $A\in[1/4,3/4]$.
-\end{proof}
-
-At that maximally ambiguous point, one endpoint law has $(Q_0,Q_1,Q_2,Q_3)=(0,3/4,0,1/4)$ and the other has $(1/4,0,3/4,0)$; the independent triple lies between them. These are pairwise independent unbiased variables with sharply different third-order interactions. Pairwise data can therefore miss half of the entire accuracy scale even in the smallest nontrivial odd ensemble.
-
-Equation \eqref{eq:feasible-r} also shows that a valid-looking correlation matrix need not describe Bernoulli variables. For $p=1/2$, it requires $r\ge1/6$, or $\rho\ge-1/3$. Yet the $3\times3$ equicorrelation matrix with $\rho=-1/2$ is positive semidefinite. Its pairwise moments violate the binary feasibility constraints.
-
-Correlation is not even monotone as a guarantee of voting quality. Holding $p=0.6$ fixed, the feasible pairwise overlap ranges from $r=4/15$ to $r=0.6$. Substituting $L$ and $U$ from \eqref{eq:equal3} gives the exact lower envelope
-\begin{equation}\label{eq:piecewise}
-A_{\min}(r)=
-\begin{cases}
-1.6-3r,&4/15\le r\le0.4,\\
-r,&0.4\le r\le0.6.
-\end{cases}
-\end{equation}
-For example, the guaranteed accuracy is $0.8$ at the most negative feasible correlation, falls to $0.52$ at zero correlation ($r=0.36$), reaches $0.4$ at $r=0.4$, and rises again to $0.6$ at perfect positive correlation ($r=0.6$). The worst upper and lower couplings change with $r$; a single diversity score cannot be interpreted without the full feasibility constraints and voting rule.
-
-\subsection{Exact linear programs for arbitrary $K$}
-For general $K$, index binary configurations by subsets $B\subseteq[K]$ of correct voters and put $w_B=\Prb(\{i:Z_i=1\}=B)$. Given marginals $p_i$ and pairwise moments $r_{ij}$, the two exact extremal problems are the finite linear programs
+\section{General pairwise constraints and exact verification LPs}\label{app:general}
+For arbitrary $p_i,r_{ij}$, index configurations by $B\subseteq[K]$ and let $w_B$ be the probability that exactly $B$ is correct. The exact minimum/maximum is
 \begin{equation}\label{eq:LP}
 \begin{aligned}
- \underset{w_B\ge0}{\operatorname{minimize/maximize}}\quad &\sum_{|B|\ge t}w_B,\\
- \text{subject to}\quad &\sum_Bw_B=1,\\
- &\sum_{B\ni i}w_B=p_i\quad(i\in[K]),\\
- &\sum_{B\supseteq\{i,j\}}w_B=r_{ij}\quad(i<j).
+ \min/\max\quad&\sum_{|B|\ge t}w_B,\\
+ \text{subject to}\quad&\sum_Bw_B=1,\quad w_B\ge0,\\
+ &\sum_{B\ni i}w_B=p_i,\quad
+ \sum_{B\supseteq\{i,j\}}w_B=r_{ij}\quad(i<j).
 \end{aligned}
 \end{equation}
-The constraints are necessary and sufficient because the $w_B$ are precisely the joint cell probabilities. Infeasibility means the supplied marginal/correlation data are incompatible. For example, a lower-bound certificate is any $\lambda_0,\lambda_i,\mu_{ij}$ satisfying
-\begin{equation}\label{eq:dual}
- \lambda_0+\sum_{i\in B}\lambda_i+\sum_{\{i,j\}\subseteq B}\mu_{ij}
- \le\ind\{|B|\ge t\}\qquad\text{for every }B\subseteq[K].
-\end{equation}
-Multiplying by $w_B$ and summing proves
-$A\ge\lambda_0+\sum_i\lambda_ip_i+\sum_{i<j}\mu_{ij}r_{ij}$.
-Maximizing this expression gives the exact minimum in \eqref{eq:LP} by linear-programming duality whenever the moments are feasible. Reversing the inequalities gives upper-bound certificates. The formulation has $2^K$ variables; it is most useful directly for small and moderate ensembles or as a benchmark for analytic bounds.
+These constraints are necessary and sufficient because the variables are the full joint law. This is the full binary LP used in verification. In the symmetric case, the independent count LP is
+\[
+ \min/\max\sum_{s=m+1}^K Q_s,\qquad
+ Q_s\ge0,\quad \sum_sQ_s=1,\quad \sum_s sQ_s=\mu,\quad
+ \sum_s s(s-1)Q_s=\nu.
+\]
+The proof in the main text derives its answer without invoking a solver. Symmetric moments are essential for the converse construction to satisfy each specified pair; for heterogeneous pair data the count bound is still valid but need not be exact.
 
-The extrema can always be represented by sparse laws. A basic feasible solution of \eqref{eq:LP} has at most $1+K+\binom K2$ positive cell probabilities, because that is the number of equality constraints before removing redundancies. With only marginals, at most $K+1$ positive cells suffice. Thus exponential enumeration describes the constraint set, but an extremal dependence structure need not put mass on exponentially many configurations. In the three-voter formulas, setting $q=L$ or $q=U$ visibly forces at least one cell probability to zero.
+\section{Reproduction and submission statements}
+From the repository root run \texttt{python experiments/verify.py} and \texttt{python experiments/plot.py}. The notebook \texttt{project.ipynb} calls these same implementations rather than maintaining a second copy. Results are saved to \texttt{results/verification.json} and \texttt{results/comparison.csv}; figures are generated as PDF and PNG. Dependencies are pinned in \texttt{requirements.txt}. The README gives PDF build and submission-renaming instructions. Reading notes in \texttt{notes/literature.md} distinguish actual full-text access from metadata-only references; \texttt{notes/derivation.md} records the elementary arguments.
 
-\section{Extension: robust weighted voting}
-Suppose nonnegative weights $w_i$ sum to one and predict by weighted majority, with success event $\sum_iw_iZ_i>1/2$. This includes choosing a single classifier by setting its weight to one. The next observation applies to any $K$ and arbitrary $p_i$, and clarifies when weight optimization can and cannot protect against unknown dependence.
+\paragraph{Individual contributions --- complete before submission.}
+Replace the generic team authorship with the actual team members and add one accurate contribution statement per member. No contributions or names have been invented. The assigned GroupID is also needed for the final submission filenames.
 
-\begin{proposition}[Minimax weighted rule]\label{prop:weights}
-Over all nonnegative weights and all joint laws with fixed marginal accuracies,
-\begin{equation}\label{eq:weights}
- \max_{w_i\ge0,\,\sum_iw_i=1}\ \inf_{\mathcal L(Z):\,\Prb(Z_i=1)=p_i}
- \Prb\!\left(\sum_iw_iZ_i>\tfrac12\right)=\max_i p_i.
-\end{equation}
-\end{proposition}
-\begin{proof}
-Putting all weight on a classifier with accuracy $p_{\max}$ guarantees $p_{\max}$ for every coupling. For the reverse bound, let $U$ be uniform on $[0,1]$ and set $Z_i=\ind\{U\le p_i\}$. These variables have the prescribed marginals. Whenever $U>p_{\max}$, every classifier is wrong, so every nonnegative weighted majority is wrong. Its accuracy under this one admissible coupling is at most $p_{\max}$, regardless of the chosen weights.
-\end{proof}
-
-This result is a worst-case statement, not a recommendation to discard ensembles under an independently justified model. Independence can yield a gain, as \eqref{eq:binomial} shows. It says that marginal accuracies alone cannot \emph{guarantee} a gain from voting; information restricting the dependence is needed for a robust improvement. The fully comonotone construction in the proof is a common adverse joint law for every weighting scheme.
-
-\section{Discussion and limitations}
-The information hierarchy is now explicit. Independence specifies the complete product joint law, hence an exact binomial (or Poisson-binomial) tail. Marginal accuracies alone specify only a Fr\'echet class, whose exact lower envelope is \eqref{eq:heterogeneous}. Pairwise correlations shrink that class but still leave higher-order interactions undetermined, as the three-voter example proves. The full joint law determines $A$ immediately. Increasing the ensemble size is beneficial under $p>1/2$ independence but can reduce the guaranteed accuracy under unrestricted dependence. With only marginals, the robust weighted-vote optimum is a single best classifier.
-
-The connection to second-order majority-vote bounds is concrete. Define the normalized vote margin $M=2S/K-1$; for odd $K$, $A=\Prb(M>0)$. Its first two moments are fixed by the one- and two-voter success probabilities:
-\begin{equation}\label{eq:marginmoments}
- \Ex M=\frac{2}{K}\sum_i p_i-1,\qquad
- \Ex M^2=1-\frac{4}{K}\sum_i p_i
- +\frac{4}{K^2}\left(\sum_i p_i+2\sum_{i<j}r_{ij}\right).
-\end{equation}
-When $\Ex M>0$, Cauchy--Schwarz gives
-$\Ex M\le\Ex[M\ind\{M>0\}]\le\sqrt{\Ex[M^2]A}$, and hence
-$A\ge(\Ex M)^2/\Ex M^2$. This is the basic moment logic behind C-bound-style analyses of majority votes \citep{germain2015}; second-order PAC-Bayesian work also studies weighted votes \citep{masegosa2020}. Such bounds are useful when the full joint law is unavailable, but generally need not be sharp. In our $K=3$, $p=0.6$, $r=0.36$ example, the moment inequality gives only $A\ge 1/9$, whereas the exact pairwise-constrained minimum is $0.52$. Higher-order feasibility and the discrete threshold matter substantially.
-
-These are population statements. Estimating $p_i$ and $r_{ij}$ from a finite validation set introduces sampling error, and using estimates as exact constraints in \eqref{eq:LP} may even produce an infeasible program. A practical uncertainty-aware version would replace equalities by confidence regions. We also assume fixed binary classifiers and a common test distribution; distribution shift or training-data dependence requires additional modeling. No numerical experiment is needed for our exact finite-sample claims, though the displayed three-voter distributions provide directly checkable extremal examples.
-
-\clearpage
-\begin{thebibliography}{9}
-\bibitem[Bahadur(1961)]{bahadur1961}
-R.~R. Bahadur. A representation of the joint distribution of responses to $n$ dichotomous items. In H.~Solomon, editor, \emph{Studies in Item Analysis and Prediction}. Stanford University Press, 1961.
-
-\bibitem[Bertsimas and Popescu(2005)]{bertsimas2005}
-D. Bertsimas and I. Popescu. Optimal inequalities in probability theory: A convex optimization approach. \emph{SIAM Journal on Optimization}, 15(3):780--804, 2005.
-
-\bibitem[Germain et~al.(2015)]{germain2015}
-P. Germain, A. Lacasse, F. Laviolette, M. Marchand, and J.-F. Roy. Risk bounds for the majority vote: From a PAC-Bayesian analysis to a learning algorithm. \emph{Journal of Machine Learning Research}, 16:787--860, 2015.
-
-\bibitem[Hoeffding(1963)]{hoeffding1963}
-W. Hoeffding. Probability inequalities for sums of bounded random variables. \emph{Journal of the American Statistical Association}, 58(301):13--30, 1963.
-
-\bibitem[Kuncheva and Whitaker(2003)]{kuncheva2003}
-L.~I. Kuncheva and C.~J. Whitaker. Measures of diversity in classifier ensembles and their relationship with the ensemble accuracy. \emph{Machine Learning}, 51:181--207, 2003.
-
-\bibitem[Masegosa et~al.(2020)]{masegosa2020}
-A. Masegosa, S. Lorenzen, C. Igel, and Y. Seldin. Second order PAC-Bayesian bounds for the weighted majority vote. In \emph{Advances in Neural Information Processing Systems}, 2020.
-\end{thebibliography}
-
-\appendix
-\section{Submission statements to complete before submission}
-\textbf{Individual contributions.} Add one brief, accurate statement for each team member, with their names, after the team is known. The authorship placeholder on the first page should also be replaced with the actual team information.
-
-\textbf{AI use.} OpenAI Codex assisted with drafting and mathematical exploration. Python/SciPy linear programs were used to check the finite-dimensional formulas on sampled cases. The team should update this statement if its final workflow differs and independently verify every equation, proof, and reference before submission.
-
+\paragraph{AI use.}
+OpenAI Codex assisted with literature retrieval and reading notes, mathematical exploration, the elementary certificate and threshold derivations, implementation of reproducible SciPy checks, and drafting the report and presentation. The team must understand and independently verify all results and update this statement to reflect its final work.
 \end{document}
