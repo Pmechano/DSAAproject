@@ -1,0 +1,291 @@
+\documentclass{article}
+\usepackage[main,final]{neurips_2026}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{url}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newcommand{\Prb}{\mathbb P}
+\newcommand{\Ex}{\mathbb E}
+\newcommand{\ind}{\mathbf 1}
+
+\title{What Marginals and Correlations Can Tell Us About Ensemble Voting}
+\author{DSAA2011 Project 2 Team}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+An ensemble can have highly accurate members and still perform poorly when their errors depend on one another. We derive the exact minimum majority-vote accuracy over every joint distribution with prescribed, possibly unequal, member accuracies. The answer is a maximum of only $K-t+1$ expressions in the sorted accuracies, where $t=(K+1)/2$. In the equal-accuracy case, independent voting approaches perfect accuracy for $p>1/2$, while worst-case voting approaches $2p-1$. We also solve exactly the minimum and maximum voting accuracy for three classifiers given all marginal accuracies and pairwise correlations. Even zero pairwise correlation leaves a large interval of possible ensemble accuracies. An exact linear program handles arbitrary $K$ with prescribed pairwise moments. Finally, under unrestricted dependence, optimizing nonnegative voting weights has minimax value equal to the accuracy of the best single classifier.
+\end{abstract}
+
+\section{Introduction and setup}
+Consider an odd number $K=2m+1$ of fixed binary classifiers evaluated on a random example $(X,Y)$. Write $Z_i=\ind\{f_i(X)=Y\}$ and $p_i=\Prb(Z_i=1)$. The number correct is $S=\sum_{i=1}^K Z_i$, and majority-vote accuracy is
+\begin{equation}\label{eq:accuracy}
+ A=\Prb(S\ge t),\qquad t=m+1=(K+1)/2.
+\end{equation}
+The joint law of $(Z_1,\ldots,Z_K)$ matters: its marginals alone do not specify the law of $S$. We study the smallest possible $A$ under specified information, with no assumption that classifiers make independent errors. Any law on $\{0,1\}^K$ can arise in the stated classification model: take $X$ to be the vector of correctness indicators, set $Y=1$, and define $f_i(X)=X_i$. Thus our extremal constructions are legitimate fixed classifiers on a random binary classification example, rather than merely abstract Bernoulli couplings.
+
+This problem connects to the long-standing study of classifier diversity: pairwise measures can be informative but need not specify the ensemble outcome \citep{kuncheva2003}. Higher-order dependence among dichotomous variables is also central to Bahadur's representation \citep{bahadur1961}. We give direct finite-sample proofs, including attainment, so none of our conclusions depends on a diversity heuristic or an asymptotic approximation.
+
+\section{Independence versus arbitrary dependence}
+\subsection{Independent classifiers}
+If the $Z_i$ are independent and identically distributed Bernoulli$(p)$, then
+\begin{equation}\label{eq:binomial}
+ A_{\rm ind}(K,p)=\sum_{j=t}^{K}\binom Kj p^j(1-p)^{K-j}.
+\end{equation}
+This increases strictly as $K$ runs through odd integers when $p>1/2$, decreases strictly when $p<1/2$, and equals $1/2$ when $p=1/2$. Indeed, conditioning on the first $K$ votes gives the exact increment
+\begin{equation}\label{eq:increment}
+ A_{\rm ind}(K+2,p)-A_{\rm ind}(K,p)
+ =\binom K{(K-1)/2}[p(1-p)]^{(K+1)/2}(2p-1).
+\end{equation}
+The only changed outcomes are those where the original count sits on either side of its majority threshold; their probabilities give \eqref{eq:increment}. For $p>1/2$, Hoeffding's inequality \citep{hoeffding1963} further gives
+$1-A_{\rm ind}(K,p)\leq \exp[-2K(p-1/2)^2]$; for $p<1/2$, the same upper bound holds for $A_{\rm ind}(K,p)$. Thus independent voters with $p>1/2$ become almost surely correct as $K$ grows.
+
+For independent but unequal accuracies, the generating polynomial
+$G(z)=\prod_{i=1}^K[(1-p_i)+p_i z]$ has $\Prb(S=j)=[z^j]G(z)$, hence $A_{\rm ind}=\sum_{j=t}^K[z^j]G(z)$. This Poisson-binomial calculation remains exact but relies on the entire product law; substituting the mean accuracy into \eqref{eq:binomial} is generally wrong.
+
+\subsection{Exact worst-case result for unequal accuracies}
+Let $p_{(1)}\ge\cdots\ge p_{(K)}$ denote the sorted accuracies and $P_r=\sum_{i=1}^r p_{(i)}$. All infima below range over joint distributions with the stated marginals.
+
+\begin{theorem}[Sharp heterogeneous lower envelope]\label{thm:marginal}
+For $t=(K+1)/2$,
+\begin{equation}\label{eq:heterogeneous}
+ A_-(p_1,\ldots,p_K)
+ :=\inf\Prb(S\ge t)
+ =\max\left\{0,\ \max_{t\le r\le K}
+ \frac{P_r-(t-1)}{r-t+1}\right\}.
+\end{equation}
+The infimum is attained. Sorting and evaluating the formula takes $O(K\log K)$ time.
+\end{theorem}
+
+\begin{proof}
+Write $E=\{S\ge t\}$ and $a=\Prb(E)$. For a subset $I$ of $r\ge t$ voters, at most $t-1$ of them are correct on $E^c$ and at most $r$ on $E$. Consequently,
+\begin{equation}\label{eq:subsetbound}
+ \sum_{i\in I}p_i=\Ex\sum_{i\in I}Z_i
+ \le (t-1)(1-a)+ra,
+\end{equation}
+so $a\ge[\sum_{i\in I}p_i-(t-1)]/(r-t+1)$. For fixed $r$, the largest sum uses the $r$ largest marginals; this proves the lower bound.
+
+To prove attainment, set $a$ equal to the right-hand side of \eqref{eq:heterogeneous} and split each marginal as
+\begin{equation}\label{eq:split}
+ p_i=x_i+y_i,\quad x_i=(p_i-a)_+,\quad y_i=\min(p_i,a).
+\end{equation}
+We first show $\sum_i x_i\le (t-1)(1-a)$. Since
+$\sum_i(p_i-a)_+=\max_{I\subseteq[K]}\sum_{i\in I}(p_i-a)$, consider a maximizing subset of size $r$. If $r\le t-1$, then its sum is at most $r(1-a)\le(t-1)(1-a)$. If $r\ge t$, the definition of $a$ and \eqref{eq:subsetbound} give the same inequality.
+
+We also need $\sum_i y_i\ge ta$. This condition deserves attention: merely saturating all the upper constraints on $E^c$ does not automatically make the proposed $E$ viable. Let $a_0$ be the probability of $E$ under the independent Bernoulli coupling with marginals $p_i$. The already proved lower bound gives $a\le a_0$. Under that coupling,
+$\sum_i\min(p_i,a_0)\ge\sum_i\Prb(Z_i=1,E)=\Ex[S\ind_E]\ge ta_0$.
+The function $h(u)=\sum_i\min(p_i,u)-tu$ is concave and has $h(0)=0$. Therefore $h(a)\ge0$ for $0\le a\le a_0$, as required.
+
+For $0<a<1$, the vectors $x/(1-a)$ and $y/a$ lie in
+\begin{align*}
+ C_0&=\{v\in[0,1]^K:\sum_i v_i\le t-1\},\\
+ C_1&=\{v\in[0,1]^K:\sum_i v_i\ge t\},
+\end{align*}
+respectively. Both polytopes are convex hulls of their $0$--$1$ vectors: at a vertex, two fractional coordinates could be perturbed in opposite directions if the sum constraint were active, while a lone fractional coordinate could be perturbed if it were inactive; one fractional coordinate cannot make an active integer-valued sum. Hence we can realize $x/(1-a)$ using outcomes with at most $t-1$ correct voters, and $y/a$ using outcomes with at least $t$ correct voters. Mix these laws with probabilities $1-a$ and $a$. Equation \eqref{eq:split} gives every marginal $p_i$, and the event probability is exactly $a$. The cases $a=0$ or $1$ follow by using only the corresponding cardinality polytope.
+\end{proof}
+
+The formula yields a simple constructive algorithm: compute $a$, decompose the two points in \eqref{eq:split} into cardinality-constrained binary vectors, then mix the resulting distributions. Such a decomposition can be found by linear programming or repeated vertex splitting. The theorem concerns accuracy alone; it does not require a unique worst-case dependence structure.
+
+\begin{proposition}[Complete interval with marginal information]\label{prop:upper}
+Let $A_+(p)=\sup\Prb(S\ge t)$ over the same marginal class. Then
+\begin{equation}\label{eq:upper}
+ A_+(p_1,\ldots,p_K)=1-A_-(1-p_1,\ldots,1-p_K).
+\end{equation}
+Both endpoints, and every accuracy between them, are attained. In particular, when all $p_i=p$,
+$A_+(p,\ldots,p)=\min\{1,Kp/t\}$.
+\end{proposition}
+\begin{proof}
+Let $E_i=1-Z_i$ be the error indicators. Because $K=2t-1$, the vote fails exactly when $\sum_iE_i\ge t$. The smallest possible failure probability with error marginals $1-p_i$ is Theorem~\ref{thm:marginal}'s $A_-$ for those marginals. Taking the complement proves \eqref{eq:upper} and endpoint attainment. Mixtures of an upper- and a lower-extremizing law preserve all marginals and interpolate their accuracies. Substitution of \eqref{eq:equal} gives the equal-$p$ formula.
+\end{proof}
+
+\subsection{Equal accuracies and examples}
+If all $p_i=p$, the expression in \eqref{eq:heterogeneous} increases with $r$ whenever $p<1$: as a function of $r$ it equals $p-(t-1)(1-p)/(r-t+1)$. The maximizing choice is $r=K$. Thus
+\begin{equation}\label{eq:equal}
+ A_-(p,\ldots,p)=\max\left\{0,\frac{Kp-(t-1)}{K-t+1}\right\}
+ =\max\left\{0,\frac{Kp-m}{m+1}\right\}.
+\end{equation}
+When $Kp>m$, put mass $a=A_-$ on the all-correct vector and mass $1-a$ on a uniformly chosen vector with exactly $m$ correct entries. Each voter then has success probability $a+(1-a)m/K=p$, and majority wins only in the all-correct outcome. When $Kp\le m$, mix uniformly chosen configurations with $\lfloor Kp\rfloor$ and $\lceil Kp\rceil$ correct entries to obtain each marginal $p$ while majority never wins. This explicitly attains both branches of \eqref{eq:equal}.
+
+For every fixed $p>1/2$, \eqref{eq:equal} becomes
+\begin{equation}\label{eq:limit}
+ A_-(K,p)=2p-1+\frac{2(1-p)}{K+1}\ \longrightarrow\ 2p-1.
+\end{equation}
+The sequence strictly \emph{decreases} with odd $K$ when $p<1$, in contrast to independent voting. At $p=1/2$, $A_-=1/(K+1)$ while $A_{\rm ind}=1/2$; for $p<1/2$, $A_-$ eventually becomes zero. For $p=0.6$, three independent voters are correct with probability $0.648$, but the worst coupling gives $0.4$; for five voters these values are $0.68256$ and $1/3$. More individually good models therefore need not improve the worst-case ensemble.
+
+Unequal accuracies reveal why a bound based only on the mean accuracy can be loose. If $(p_1,p_2,p_3)=(0.9,0.9,0.1)$, the $r=2$ term in \eqref{eq:heterogeneous} equals $0.8$, while the $r=3$ term equals $0.45$. The first two classifiers must both be correct at least $80\%$ of the time. This $0.8$ bound is attained by making their errors disjoint and placing the third classifier's successes within the both-correct event. The average-accuracy bound, which uses only $r=3$, misses this structure. More generally, every prefix $P_r$ can be the active constraint in \eqref{eq:heterogeneous}; the sorted vector, not merely its mean, matters.
+
+The upper envelope from Proposition~\ref{prop:upper} completes the comparison. Even an excellent vote need not imply accurate individual members, and high individual accuracies alone do not imply an excellent vote. For $p=0.6$, Table~\ref{tab:envelopes} evaluates exact formulas rather than simulation estimates. By $K=11$ the independent vote has improved substantially, whereas the worst admissible vote is already close to its $0.2$ limit.
+
+\begin{table}[htbp]
+\centering
+\caption{Accuracy with equal marginal accuracy $p=0.6$ under three dependence assumptions. Values follow from \eqref{eq:binomial}, \eqref{eq:equal}, and \eqref{eq:upper}.}\label{tab:envelopes}
+\begin{tabular}{@{}rrrr@{}}
+\toprule
+$K$ & Worst coupling $A_-$ & Independent $A_{\rm ind}$ & Best coupling $A_+$ \\
+\midrule
+3 & 0.400000 & 0.648000 & 0.900000 \\
+5 & 0.333333 & 0.682560 & 1.000000 \\
+11 & 0.266667 & 0.753498 & 1.000000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{What pairwise correlations determine}
+\subsection{A complete answer for three possibly unequal voters}
+For $K=3$, let $r_{ij}=\Ex[Z_iZ_j]$. When $0<p_i,p_j<1$, the specified correlation $\rho_{ij}$ fixes
+\begin{equation}\label{eq:rfromrho}
+ r_{ij}=p_ip_j+\rho_{ij}\sqrt{p_i(1-p_i)p_j(1-p_j)}.
+\end{equation}
+The following result solves the full three-voter pairwise-moment problem, including unequal marginals. It also supplies a direct feasibility test that is stronger than checking a correlation matrix for positive semidefiniteness.
+
+\begin{theorem}[Exact three-voter interval]\label{thm:three}
+Define
+\begin{align}
+ L&=\max\{0,\ r_{12}+r_{13}-p_1,\ r_{12}+r_{23}-p_2,\ r_{13}+r_{23}-p_3\},\label{eq:L}\\
+ U&=\min\{r_{12},r_{13},r_{23},\ 1-p_1-p_2-p_3+r_{12}+r_{13}+r_{23}\}.\label{eq:U}
+\end{align}
+The moments are jointly feasible exactly when $L\le U$. Conditional on feasibility, every majority-vote accuracy in the interval
+\begin{equation}\label{eq:threeinterval}
+ \boxed{\quad r_{12}+r_{13}+r_{23}-2U\ \le A\le\
+ r_{12}+r_{13}+r_{23}-2L\quad}
+\end{equation}
+is attainable.
+\end{theorem}
+
+\begin{proof}
+Put $q=\Prb(Z_1=Z_2=Z_3=1)$. All eight cell probabilities are forced by $q$ and the given moments:
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Cell & Probability \\
+\midrule
+$111$ & $q$ \\
+$110,101,011$ & $r_{12}-q,\ r_{13}-q,\ r_{23}-q$ \\
+$100,010,001$ & $p_1-r_{12}-r_{13}+q,\ p_2-r_{12}-r_{23}+q,\ p_3-r_{13}-r_{23}+q$ \\
+$000$ & $1-\sum_i p_i+\sum_{i<j}r_{ij}-q$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Nonnegativity of these cells is equivalent to $L\le q\le U$. Conversely, the listed cells sum to one and have precisely the requested one- and two-variable moments, so every such $q$ is feasible. Majority wins in cells $110,101,011,111$, hence $A=\sum_{i<j}r_{ij}-2q$. Its endpoints occur at $q=U$ and $q=L$, and mixing the endpoint laws attains every intermediate accuracy.
+\end{proof}
+
+\subsection{Equal marginals and equal correlations}
+For the assignment's main case, set $p_i=p$ and $\rho_{ij}=\rho$, with $0<p<1$. Write
+$r=p^2+\rho p(1-p)$. Theorem~\ref{thm:three} specializes to
+\begin{equation}\label{eq:equal3}
+ L=\max(0,2r-p),\quad U=\min(r,1-3p+3r),\quad
+ A_{\min}=3r-2U,\quad A_{\max}=3r-2L.
+\end{equation}
+The parameters are feasible exactly when
+\begin{equation}\label{eq:feasible-r}
+ \max\{0,p-1/3,2p-1\}\le r\le p.
+\end{equation}
+One can see the remaining degree of freedom particularly clearly by symmetrizing any feasible law over voter permutations. If $Q_j=\Prb(S=j)$ and $q=Q_3$, then
+\begin{equation}\label{eq:Q}
+ (Q_0,Q_1,Q_2,Q_3)=(1-3p+3r-q,\ 3p-6r+3q,\ 3r-3q,\ q).
+\end{equation}
+Choose a subset uniformly conditional on $S=j$ to realize this exchangeable law. Its individual accuracies and pairwise correlations remain $p$ and $\rho$. Thus \eqref{eq:equal3} gives actual constructions, not just moment bounds.
+
+The failure of pairwise information can be large even at \emph{zero} pairwise correlation. Set $p=0.6$ and $r=p^2=0.36$, so all pairs are independent. The following three laws have identical $p$ and $r$:
+\begin{center}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Law & $Q_0$ & $Q_1$ & $Q_2$ & $Q_3$ & $A=Q_2+Q_3$ \\
+\midrule
+Minimum vote accuracy & $0$ & $0.48$ & $0.24$ & $0.28$ & $0.52$ \\
+Independent triple & $0.064$ & $0.288$ & $0.432$ & $0.216$ & $0.648$ \\
+Maximum vote accuracy & $0.16$ & $0$ & $0.72$ & $0.12$ & $0.84$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+In each row, conditional on $S=j$, distribute mass equally among the $\binom3j$ configurations. For example $\Ex S/3=0.6$ and $\Ex[S(S-1)]/6=0.36$ in every row. Nevertheless, the accuracy varies by $0.32$. The missing statistic is the third-order success probability $q=\Prb(111)$; zero correlation for Bernoulli pairs means pairwise independence, not joint independence.
+
+\begin{proposition}[Largest three-voter pairwise ambiguity]\label{prop:width}
+With equal $p$ and equal feasible $\rho$, the width of the voting-accuracy interval is
+$A_{\max}-A_{\min}=2(U-L)\le\min\{p,1-p\}\le1/2$.
+The upper bound $1/2$ is attained at $p=1/2$ and $\rho=0$, where the admissible vote accuracies are exactly $[1/4,3/4]$.
+\end{proposition}
+\begin{proof}
+If $p\le1/2$, then $U\le r$ and $L\ge\max(0,2r-p)$, giving
+$U-L\le\min\{r,p-r\}\le p/2$. If $p\ge1/2$, replace each $Z_i$ by $1-Z_i$. Because $K=3$, the majority accuracy for the complements is $1-A$, so its admissible interval has the same width; the previous argument applies with marginal $1-p$. For $p=1/2$ and $r=p^2=1/4$, \eqref{eq:equal3} yields $L=0$, $U=1/4$, and $A\in[1/4,3/4]$.
+\end{proof}
+
+At that maximally ambiguous point, one endpoint law has $(Q_0,Q_1,Q_2,Q_3)=(0,3/4,0,1/4)$ and the other has $(1/4,0,3/4,0)$; the independent triple lies between them. These are pairwise independent unbiased variables with sharply different third-order interactions. Pairwise data can therefore miss half of the entire accuracy scale even in the smallest nontrivial odd ensemble.
+
+Equation \eqref{eq:feasible-r} also shows that a valid-looking correlation matrix need not describe Bernoulli variables. For $p=1/2$, it requires $r\ge1/6$, or $\rho\ge-1/3$. Yet the $3\times3$ equicorrelation matrix with $\rho=-1/2$ is positive semidefinite. Its pairwise moments violate the binary feasibility constraints.
+
+Correlation is not even monotone as a guarantee of voting quality. Holding $p=0.6$ fixed, the feasible pairwise overlap ranges from $r=4/15$ to $r=0.6$. Substituting $L$ and $U$ from \eqref{eq:equal3} gives the exact lower envelope
+\begin{equation}\label{eq:piecewise}
+A_{\min}(r)=
+\begin{cases}
+1.6-3r,&4/15\le r\le0.4,\\
+r,&0.4\le r\le0.6.
+\end{cases}
+\end{equation}
+For example, the guaranteed accuracy is $0.8$ at the most negative feasible correlation, falls to $0.52$ at zero correlation ($r=0.36$), reaches $0.4$ at $r=0.4$, and rises again to $0.6$ at perfect positive correlation ($r=0.6$). The worst upper and lower couplings change with $r$; a single diversity score cannot be interpreted without the full feasibility constraints and voting rule.
+
+\subsection{Exact linear programs for arbitrary $K$}
+For general $K$, index binary configurations by subsets $B\subseteq[K]$ of correct voters and put $w_B=\Prb(\{i:Z_i=1\}=B)$. Given marginals $p_i$ and pairwise moments $r_{ij}$, the two exact extremal problems are the finite linear programs
+\begin{equation}\label{eq:LP}
+\begin{aligned}
+ \underset{w_B\ge0}{\operatorname{minimize/maximize}}\quad &\sum_{|B|\ge t}w_B,\\
+ \text{subject to}\quad &\sum_Bw_B=1,\\
+ &\sum_{B\ni i}w_B=p_i\quad(i\in[K]),\\
+ &\sum_{B\supseteq\{i,j\}}w_B=r_{ij}\quad(i<j).
+\end{aligned}
+\end{equation}
+The constraints are necessary and sufficient because the $w_B$ are precisely the joint cell probabilities. Infeasibility means the supplied marginal/correlation data are incompatible. For example, a lower-bound certificate is any $\lambda_0,\lambda_i,\mu_{ij}$ satisfying
+\begin{equation}\label{eq:dual}
+ \lambda_0+\sum_{i\in B}\lambda_i+\sum_{\{i,j\}\subseteq B}\mu_{ij}
+ \le\ind\{|B|\ge t\}\qquad\text{for every }B\subseteq[K].
+\end{equation}
+Multiplying by $w_B$ and summing proves
+$A\ge\lambda_0+\sum_i\lambda_ip_i+\sum_{i<j}\mu_{ij}r_{ij}$.
+Maximizing this expression gives the exact minimum in \eqref{eq:LP} by linear-programming duality whenever the moments are feasible. Reversing the inequalities gives upper-bound certificates. The formulation has $2^K$ variables; it is most useful directly for small and moderate ensembles or as a benchmark for analytic bounds.
+
+The extrema can always be represented by sparse laws. A basic feasible solution of \eqref{eq:LP} has at most $1+K+\binom K2$ positive cell probabilities, because that is the number of equality constraints before removing redundancies. With only marginals, at most $K+1$ positive cells suffice. Thus exponential enumeration describes the constraint set, but an extremal dependence structure need not put mass on exponentially many configurations. In the three-voter formulas, setting $q=L$ or $q=U$ visibly forces at least one cell probability to zero.
+
+\section{Extension: robust weighted voting}
+Suppose nonnegative weights $w_i$ sum to one and predict by weighted majority, with success event $\sum_iw_iZ_i>1/2$. This includes choosing a single classifier by setting its weight to one. The next observation applies to any $K$ and arbitrary $p_i$, and clarifies when weight optimization can and cannot protect against unknown dependence.
+
+\begin{proposition}[Minimax weighted rule]\label{prop:weights}
+Over all nonnegative weights and all joint laws with fixed marginal accuracies,
+\begin{equation}\label{eq:weights}
+ \max_{w_i\ge0,\,\sum_iw_i=1}\ \inf_{\mathcal L(Z):\,\Prb(Z_i=1)=p_i}
+ \Prb\!\left(\sum_iw_iZ_i>\tfrac12\right)=\max_i p_i.
+\end{equation}
+\end{proposition}
+\begin{proof}
+Putting all weight on a classifier with accuracy $p_{\max}$ guarantees $p_{\max}$ for every coupling. For the reverse bound, let $U$ be uniform on $[0,1]$ and set $Z_i=\ind\{U\le p_i\}$. These variables have the prescribed marginals. Whenever $U>p_{\max}$, every classifier is wrong, so every nonnegative weighted majority is wrong. Its accuracy under this one admissible coupling is at most $p_{\max}$, regardless of the chosen weights.
+\end{proof}
+
+This result is a worst-case statement, not a recommendation to discard ensembles under an independently justified model. Independence can yield a gain, as \eqref{eq:binomial} shows. It says that marginal accuracies alone cannot \emph{guarantee} a gain from voting; information restricting the dependence is needed for a robust improvement. The fully comonotone construction in the proof is a common adverse joint law for every weighting scheme.
+
+\section{Discussion and limitations}
+The information hierarchy is now explicit. Independence specifies the complete product joint law, hence an exact binomial (or Poisson-binomial) tail. Marginal accuracies alone specify only a Fr\'echet class, whose exact lower envelope is \eqref{eq:heterogeneous}. Pairwise correlations shrink that class but still leave higher-order interactions undetermined, as the three-voter example proves. The full joint law determines $A$ immediately. Increasing the ensemble size is beneficial under $p>1/2$ independence but can reduce the guaranteed accuracy under unrestricted dependence. With only marginals, the robust weighted-vote optimum is a single best classifier.
+
+These are population statements. Estimating $p_i$ and $r_{ij}$ from a finite validation set introduces sampling error, and using estimates as exact constraints in \eqref{eq:LP} may even produce an infeasible program. A practical uncertainty-aware version would replace equalities by confidence regions. We also assume fixed binary classifiers and a common test distribution; distribution shift or training-data dependence requires additional modeling. No numerical experiment is needed for our exact finite-sample claims, though the displayed three-voter distributions provide directly checkable extremal examples.
+
+\clearpage
+\begin{thebibliography}{9}
+\bibitem[Bahadur(1961)]{bahadur1961}
+R.~R. Bahadur. A representation of the joint distribution of responses to $n$ dichotomous items. In H.~Solomon, editor, \emph{Studies in Item Analysis and Prediction}. Stanford University Press, 1961.
+
+\bibitem[Hoeffding(1963)]{hoeffding1963}
+W. Hoeffding. Probability inequalities for sums of bounded random variables. \emph{Journal of the American Statistical Association}, 58(301):13--30, 1963.
+
+\bibitem[Kuncheva and Whitaker(2003)]{kuncheva2003}
+L.~I. Kuncheva and C.~J. Whitaker. Measures of diversity in classifier ensembles and their relationship with the ensemble accuracy. \emph{Machine Learning}, 51:181--207, 2003.
+\end{thebibliography}
+
+\appendix
+\section{Submission statements to complete before submission}
+\textbf{Individual contributions.} Add one brief, accurate statement for each team member, with their names, after the team is known. The authorship placeholder on the first page should also be replaced with the actual team information.
+
+\textbf{AI use.} OpenAI Codex assisted with drafting and mathematical exploration. Python/SciPy linear programs were used to check the finite-dimensional formulas on sampled cases. The team should update this statement if its final workflow differs and independently verify every equation, proof, and reference before submission.
+
+\end{document}
